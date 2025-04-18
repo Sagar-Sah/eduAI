@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduAI - PDF Tutor</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --primary-dark: #4f46e5;
+      --secondary: #10b981;
+      --dark: #1e293b;
+      --darker: #0f172a;
+      --light: #f8fafc;
+      --gray: #94a3b8;
+      --gray-light: #e2e8f0;
+      --gray-dark: #64748b;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --sidebar-width: 260px;
+      --panel-width: 400px;
+      --header-height: 64px;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      display: flex;
+      height: 100vh;
+      color: var(--darker);
+      background-color: var(--light);
+      line-height: 1.5;
+    }
+    
+    /* Sidebar Styles */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: var(--darker);
+      color: white;
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: var(--transition);
+      z-index: 10;
+    }
+    
+    .sidebar-header {
+      padding: 0 24px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 16px;
+    }
+    
+    .sidebar h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .sidebar h2::before {
+      content: "✨";
+    }
+    
+    .sidebar nav {
+      padding: 0 16px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    
+    .sidebar nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      margin-bottom: 4px;
+      text-decoration: none;
+      color: var(--gray);
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+      font-weight: 500;
+    }
+    
+    .sidebar nav a:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: white;
+    }
+    
+    .sidebar nav a.active {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    /* Main Content Styles */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .header {
+      height: var(--header-height);
+      padding: 0 24px;
+      font-size: 1.125rem;
+      font-weight: 600;
+      background: white;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      z-index: 5;
+    }
+    
+    .workspace {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .pdf-viewer {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      background: white;
+      transition: var(--transition);
+      position: relative;
+    }
+    
+    .pdf-placeholder {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--gray-dark);
+    }
+    
+    .pdf-placeholder svg {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 16px;
+      opacity: 0.6;
+    }
+    
+    .pdf-placeholder h3 {
+      font-size: 1.25rem;
+      margin-bottom: 8px;
+      color: var(--dark);
+    }
+    
+    .pdf-placeholder p {
+      max-width: 400px;
+      margin-bottom: 24px;
+    }
+    
+    .btn {
+      padding: 10px 24px;
+      border-radius: var(--radius-sm);
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      font-size: 0.875rem;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+    
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid var(--gray-light);
+      color: var(--dark);
+    }
+    
+    .btn-outline:hover {
+      background-color: var(--gray-light);
+    }
+    
+    /* Interaction Panel Styles */
+    .interact-panel {
+      width: var(--panel-width);
+      background: white;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--gray-light);
+      transition: var(--transition);
+      box-shadow: -4px 0 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--gray-light);
+      padding: 0 16px;
+    }
+    
+    .tabs button {
+      flex: 1;
+      padding: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      outline: none;
+      transition: var(--transition);
+      color: var(--gray-dark);
+      position: relative;
+      font-size: 0.875rem;
+    }
+    
+    .tabs button:hover {
+      color: var(--dark);
+    }
+    
+    .tabs button.active {
+      color: var(--primary);
+    }
+    
+    .tabs button.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background-color: var(--primary);
+      border-radius: 3px 3px 0 0;
+    }
+    
+    .tab-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+    }
+    
+    .tab-pane {
+      display: none;
+      height: 100%;
+      flex-direction: column;
+    }
+    
+    .tab-pane.active {
+      display: flex;
+    }
+    
+    /* Summary Tab Styles */
+    .summary-content {
+      padding: 20px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    
+    .summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .summary-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    
+    .summary-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .summary-text {
+      background-color: var(--gray-light);
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    
+    .key-points {
+      margin-top: 20px;
+    }
+    
+    .key-points h3 {
+      font-size: 1rem;
+      margin-bottom: 12px;
+      color: var(--dark);
+    }
+    
+    .key-points ul {
+      padding-left: 20px;
+    }
+    
+    .key-points li {
+      margin-bottom: 8px;
+    }
+    
+    /* Chat Styles */
+    .chat-box {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .message {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .message.ai {
+      align-self: flex-start;
+      background-color: var(--gray-light);
+      border-bottom-left-radius: 4px;
+      color: var(--dark);
+    }
+    
+    .message.user {
+      align-self: flex-end;
+      background-color: var(--primary);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    
+    .input-area {
+      padding: 16px;
+      border-top: 1px solid var(--gray-light);
+      background: white;
+    }
+    
+    .input-bar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .input-bar input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid var(--gray-light);
+      border-radius: var(--radius-sm);
+      font-size: 0.9375rem;
+      transition: var(--transition);
+    }
+    
+    .input-bar input:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+    
+    .send-btn {
+      padding: 12px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .send-btn:hover {
+      background: var(--primary-dark);
+    }
+    
+    .send-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    /* Quiz Tab Styles */
+    .quiz-container {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .quiz-header {
+      margin-bottom: 20px;
+    }
+    
+    .quiz-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 8px;
+    }
+    
+    .quiz-progress {
+      font-size: 0.875rem;
+      color: var(--gray-dark);
+    }
+    
+    .quiz-question {
+      background-color: var(--gray-light);
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
+    }
+    
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .quiz-option {
+      padding: 12px 16px;
+      border: 1px solid var(--gray-light);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .quiz-option:hover {
+      background-color: rgba(99, 102, 241, 0.1);
+      border-color: var(--primary-light);
+    }
+    
+    .quiz-option.selected {
+      background-color: var(--primary-light);
+      border-color: var(--primary);
+      color: white;
+    }
+    
+    .quiz-option.correct {
+      background-color: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+    
+    .quiz-option.incorrect {
+      background-color: var(--danger);
+      border-color: var(--danger);
+      color: white;
+    }
+    
+    .quiz-feedback {
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
+      display: none;
+    }
+    
+    .quiz-feedback.correct {
+      background-color: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      display: block;
+    }
+    
+    .quiz-feedback.incorrect {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+      display: block;
+    }
+    
+    .quiz-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    
+    /* Performance Tab Styles */
+    .performance-container {
+      padding: 20px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    
+    .performance-header {
+      margin-bottom: 20px;
+    }
+    
+    .performance-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 8px;
+    }
+    
+    .performance-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .stat-card {
+      background-color: white;
+      border: 1px solid var(--gray-light);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--gray-dark);
+    }
+    
+    .performance-history {
+      margin-top: 24px;
+    }
+    
+    .history-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 16px;
+    }
+    
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .history-item:last-child {
+      border-bottom: none;
+    }
+    
+    .history-score {
+      font-weight: 600;
+    }
+    
+    .history-score.high {
+      color: var(--success);
+    }
+    
+    .history-score.medium {
+      color: var(--warning);
+    }
+    
+    .history-score.low {
+      color: var(--danger);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .interact-panel {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(100%);
+        z-index: 20;
+      }
+      
+      .interact-panel.active {
+        transform: translateX(0);
+        box-shadow: -8px 0 24px rgba(0, 0, 0, 0.1);
+      }
+      
+      .sidebar {
+        width: 80px;
+        padding: 24px 0;
+        align-items: center;
+      }
+      
+      .sidebar-header {
+        padding: 0 12px 24px;
+      }
+      
+      .sidebar h2 span {
+        display: none;
+      }
+      
+      .sidebar h2::before {
+        font-size: 1.8rem;
+      }
+      
+      .sidebar nav a span {
+        display: none;
+      }
+      
+      .sidebar nav a {
+        justify-content: center;
+        padding: 16px;
+        font-size: 1.2rem;
+      }
+    }
+    
+    /* Utility Classes */
+    .hidden {
+      display: none !important;
+    }
+    
+    .divider {
+      height: 1px;
+      background-color: var(--gray-light);
+      margin: 16px 0;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      background-color: var(--primary-light);
+      color: white;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2><span>EduAI</span></h2>
+    </div>
+    <nav>
+      <a href="#" class="active">
+        <span>📄 Upload PDF</span>
+      </a>
+      <a href="#">
+        <span>🕘 History</span>
+      </a>
+      <a href="#">
+        <span>⚙️ Settings</span>
+      </a>
+    </nav>
+  </div>
+
+  <div class="main">
+    <div class="header">Interactive PDF Tutor</div>
+
+    <div class="workspace">
+      <div class="pdf-viewer">
+        <div class="pdf-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+          <h3>No PDF Selected</h3>
+          <p>Upload a PDF document to start interacting with EduAI. Get summaries, ask questions, and test your knowledge.</p>
+          <button class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span>Upload PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="interact-panel">
+        <div class="tabs">
+          <button class="active" data-tab="summary">Summary</button>
+          <button data-tab="chat">Chat</button>
+          <button data-tab="quiz" id="quiz-btn">Quiz</button>
+          <button data-tab="performance">Performance</button>
+        </div>
+        <div class="tab-content">
+          <!-- Summary Tab Content -->
+          <div class="tab-pane active" id="summary">
+            <div class="summary-content">
+              <div class="summary-header">
+                <div class="summary-title">Document Summary</div>
+                <div class="summary-actions">
+                  <button class="btn btn-outline">Regenerate</button>
+                  <button class="btn btn-primary">Save Summary</button>
+                </div>
+              </div>
+              <div class="summary-text">
+                <p>This document appears to be about machine learning fundamentals. It covers key concepts like supervised vs. unsupervised learning, neural networks, and common algorithms. The document is approximately 25 pages long and includes several diagrams illustrating neural network architectures.</p>
+              </div>
+              <div class="key-points">
+                <h3>Key Points</h3>
+                <ul>
+                  <li>Machine learning involves training algorithms to learn patterns from data</li>
+                  <li>Supervised learning uses labeled data, while unsupervised finds hidden patterns</li>
+                  <li>Neural networks consist of interconnected layers that process information</li>
+                  <li>Common applications include image recognition and natural language processing</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Tab Content -->
+          <div class="tab-pane" id="chat">
+            <div class="chat-box">
+              <div class="messages">
+                <div class="message ai">
+                  <strong>EduAI:</strong> Hello! I'm your PDF learning assistant. I've analyzed your document about machine learning. What would you like to know?
+                </div>
+                <div class="message user">
+                  <strong>You:</strong> What are the main types of machine learning?
+                </div>
+                <div class="message ai">
+                  <strong>EduAI:</strong> According to the document, there are three main types: supervised learning (using labeled data), unsupervised learning (finding patterns in unlabeled data), and reinforcement learning (learning through rewards/punishments).
+                </div>
+              </div>
+              <div class="input-area">
+                <div class="input-bar">
+                  <input type="text" placeholder="Ask me anything about the document..." />
+                  <button class="send-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="22" y1="2" x2="11" y2="13"></line>
+                      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quiz Tab Content -->
+          <div class="tab-pane" id="quiz">
+            <div class="quiz-container">
+              <div class="quiz-header">
+                <div class="quiz-title">Test Your Knowledge</div>
+                <div class="quiz-progress">Question 1 of 5</div>
+              </div>
+              <div class="quiz-question">
+                What is the main difference between supervised and unsupervised learning?
+              </div>
+              <div class="quiz-options">
+                <div class="quiz-option">Supervised learning is faster than unsupervised learning</div>
+                <div class="quiz-option">Supervised learning uses labeled data while unsupervised doesn't</div>
+                <div class="quiz-option">Unsupervised learning only works with images</div>
+                <div class="quiz-option">There is no difference between them</div>
+              </div>
+              <div class="quiz-feedback correct">
+                Correct! The document states that supervised learning uses labeled data while unsupervised learning finds patterns in unlabeled data.
+              </div>
+              <div class="quiz-actions">
+                <button class="btn btn-outline" id="regenerate-quiz">Regenerate Question</button>
+                <button class="btn btn-primary">Submit Answer</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Performance Tab Content -->
+          <div class="tab-pane" id="performance">
+            <div class="performance-container">
+              <div class="performance-header">
+                <div class="performance-title">Your Learning Progress</div>
+              </div>
+              <div class="performance-stats">
+                <div class="stat-card">
+                  <div class="stat-value">85%</div>
+                  <div class="stat-label">Average Score</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value">12</div>
+                  <div class="stat-label">Quizzes Taken</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value">3.2</div>
+                  <div class="stat-label">Avg Questions/Min</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value">24</div>
+                  <div class="stat-label">Concepts Mastered</div>
+                </div>
+              </div>
+              <div class="performance-history">
+                <div class="history-title">Recent Quiz Results</div>
+                <div class="history-item">
+                  <div>Machine Learning Basics</div>
+                  <div class="history-score high">92%</div>
+                </div>
+                <div class="history-item">
+                  <div>Neural Networks</div>
+                  <div class="history-score medium">78%</div>
+                </div>
+                <div class="history-item">
+                  <div>Algorithm Types</div>
+                  <div class="history-score high">88%</div>
+                </div>
+                <div class="history-item">
+                  <div>Deep Learning</div>
+                  <div class="history-score low">65%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tab switching logic
+    const tabs = document.querySelectorAll(".tabs button");
+    const tabPanes = document.querySelectorAll(".tab-pane");
+    
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        const tabId = tab.getAttribute("data-tab");
+        
+        // Update active tab
+        tabs.forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        
+        // Show corresponding tab pane
+        tabPanes.forEach(pane => pane.classList.remove("active"));
+        document.getElementById(tabId).classList.add("active");
+      });
+    });
+    
+    // Quiz interaction logic
+    const quizOptions = document.querySelectorAll(".quiz-option");
+    quizOptions.forEach(option => {
+      option.addEventListener("click", () => {
+        quizOptions.forEach(opt => opt.classList.remove("selected"));
+        option.classList.add("selected");
+      });
+    });
+    
+    // Submit answer button
+    document.querySelector("#quiz .btn-primary").addEventListener("click", () => {
+      const selectedOption = document.querySelector(".quiz-option.selected");
+      if (selectedOption) {
+        // In a real app, you would check against correct answer
+        // For demo, we'll mark the second option as correct
+        if (selectedOption.textContent.includes("labeled data")) {
+          selectedOption.classList.add("correct");
+          document.querySelector(".quiz-feedback.correct").style.display = "block";
+          document.querySelector(".quiz-feedback.incorrect").style.display = "none";
+        } else {
+          selectedOption.classList.add("incorrect");
+          document.querySelector(".quiz-feedback.incorrect").style.display = "block";
+          document.querySelector(".quiz-feedback.correct").style.display = "none";
+          // Also highlight correct answer
+          quizOptions[1].classList.add("correct");
+        }
+      }
+    });
+    
+    // Chat functionality
+    function addMessage(text, isUser) {
+      const messages = document.querySelector('.messages');
+      const message = document.createElement('div');
+      message.classList.add('message');
+      message.classList.add(isUser ? 'user' : 'ai');
+      message.innerHTML = `<strong>${isUser ? 'You:' : 'EduAI:'}</strong> ${text}`;
+      messages.appendChild(message);
+      messages.scrollTop = messages.scrollHeight;
+    }
+    
+    
+    document.querySelector('.input-bar input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.querySelector('.send-btn').click();
+      }
+    });
+    
+    // Mobile panel toggle (for responsive design)
+    function togglePanel() {
+      document.querySelector('.interact-panel').classList.toggle('active');
+    }
+  </script>
+
+
+  <script>
+    // File Upload Handling
+    const uploadBtn = document.querySelector('.btn-primary');
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'application/pdf';
+    fileInput.style.display = 'none';
+
+    uploadBtn.addEventListener('click', () => fileInput.click());
+    
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      const formData = new FormData();
+      formData.append('pdf', file);
+
+      try {
+        const response = await fetch('/upload_pdf', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (response.ok) {
+          alert('PDF uploaded successfully!');
+          // Update UI with PDF preview
+          document.querySelector('.pdf-placeholder h3').textContent = file.name;
+          document.querySelector('.pdf-placeholder p').textContent = `${(file.size/1024/1024).toFixed(2)} MB`;
+          // Load summary automatically
+          loadSummary();
+        }
+      } catch (error) {
+        console.error('Upload failed:', error);
+      }
+    });
+
+    // Summary Handling
+    async function loadSummary() {
+      try {
+        const response = await fetch('/summarize');
+        const data = await response.json();
+        
+        document.querySelector('.summary-text p').textContent = data.summary;
+        // Generate key points from summary (you might want to modify this)
+        const keyPoints = data.summary.split('. ').slice(0,4);
+        document.querySelector('.key-points ul').innerHTML = keyPoints
+          .map(point => `<li>${point}</li>`)
+          .join('');
+      } catch (error) {
+        console.error('Error loading summary:', error);
+      }
+    }
+
+    // Chat Handling
+// In your index.html's JavaScript
+document.querySelector('.send-btn').addEventListener('click', async () => {
+  const input = document.querySelector('.input-bar input');
+  const question = input.value.trim();
+  
+  if (!question || question.length < 3) {
+    addMessage("Please ask a longer question", false);
+    return;
+  }
+
+  addMessage(question, true);
+  input.value = '';
+
+  try {
+    const response = await fetch('/ask', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ question })
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to get answer");
+    }
+    
+    const data = await response.json();
+    addMessage(data.answer, false);
+    
+  } catch (error) {
+    console.error('Chat error:', error);
+    addMessage(`Error: ${error.message}`, false);
+  }
+});
+    // Quiz Handling
+    async function loadNewQuestion() {
+      try {
+        const response = await fetch('/generate_questions');
+        const data = await response.json();
+        const question = data.questions[0]; // Get first question
+        
+        // Update quiz UI
+        document.querySelector('.quiz-question').textContent = question.question;
+        const optionsContainer = document.querySelector('.quiz-options');
+        optionsContainer.innerHTML = question.options
+          .map(opt => `<div class="quiz-option">${opt}</div>`)
+          .join('');
+        
+        // Reset feedback and selections
+        document.querySelector('.quiz-feedback').style.display = 'none';
+        quizOptions.forEach(opt => opt.classList.remove('selected', 'correct', 'incorrect'));
+      } catch (error) {
+        console.error('Error loading question:', error);
+      }
+    }
+
+    document.querySelector('#quiz-btn').addEventListener('click', async () => {
+      const selectedOption = document.querySelector('.quiz-option.selected');
+      
+      if (selectedOption) {
+        const question = document.querySelector('.quiz-question').textContent;
+        const answer = selectedOption.textContent;
+
+        try {
+          const response = await fetch('/quiz', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ question, answer })
+          });
+          
+          const result = await response.json();
+          const feedback = document.querySelector('.quiz-feedback');
+          feedback.textContent = result.feedback;
+          feedback.style.display = 'block';
+          
+          // Update score display
+          document.querySelector('.stat-card:first-child .stat-value').textContent = 
+            `${Math.round(result.score)}%`;
+            
+          // Load new question after delay
+          setTimeout(loadNewQuestion, 2000);
+        } catch (error) {
+          console.error('Error evaluating answer:', error);
+        }
+      }
+    });
+
+    // Initial load
+    loadNewQuestion();
+    document.querySelector('#regenerate-quiz').addEventListener('click',loadNewQuestion)
+
+
+    document.querySelector('.send-btn').addEventListener('click', async () => {
+      const input = document.querySelector('.input-bar input');
+      const question = input.value.trim();
+      
+      if (question) {
+        addMessage(question, true);
+        input.value = '';
+    
+        try {
+          const response = await fetch('/ask', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ question })
+          });
+          
+          if (!response.ok) throw new Error(await response.text());
+          const data = await response.json();
+          addMessage(data.answer, false);
+        } catch (error) {
+          console.error('Chat error:', error);
+          addMessage("Error: " + error.message, false);
+        }
+      }
+    });
+  </script>
+
+  
+</body>
+</html>
